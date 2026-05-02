@@ -6,31 +6,44 @@
     <title>Global Stream Hub | Sameer Arshad</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        :root { --gold: #f1c40f; --bg: #0b0b0b; --card: #1c1c1c; }
-        body { margin: 0; display: flex; height: 100vh; background: var(--bg); color: #e0e0e0; font-family: 'Inter', sans-serif; overflow: hidden; }
+        :root { --gold: #f1c40f; --bg: #0b0b0b; --card: #1c1c1c; --text: #e0e0e0; }
+        body { margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
         
-        #sidebar { width: 320px; background: #141414; display: flex; flex-direction: column; border-right: 1px solid #222; }
-        .brand { padding: 25px; border-bottom: 1px solid #222; text-align: center; }
-        .brand h2 { color: var(--gold); margin: 0; letter-spacing: 1px; font-size: 22px; }
+        /* Sidebar Styling */
+        #sidebar { width: 340px; background: #141414; display: flex; flex-direction: column; border-right: 1px solid #222; }
+        .brand { padding: 20px; border-bottom: 1px solid #222; text-align: center; background: linear-gradient(to bottom, #1a1a1a, #141414); }
+        .brand h2 { color: var(--gold); margin: 0; font-size: 22px; letter-spacing: 2px; text-transform: uppercase; }
+        .brand p { font-size: 10px; color: #666; margin-top: 5px; font-weight: bold; }
 
-        .controls { padding: 15px; background: #1a1a1a; border-bottom: 1px solid #222; display: flex; flex-direction: column; gap: 10px; }
-        select, input { width: 100%; background: #222; color: white; border: 1px solid #444; padding: 10px; border-radius: 5px; outline: none; box-sizing: border-box; }
-        input:focus { border-color: var(--gold); }
+        /* Controls Section */
+        .controls { padding: 15px; background: #1a1a1a; border-bottom: 1px solid #222; display: flex; flex-direction: column; gap: 12px; }
+        select, input { 
+            width: 100%; background: #222; color: white; border: 1px solid #333; padding: 12px; 
+            border-radius: 6px; outline: none; box-sizing: border-box; transition: 0.3s;
+        }
+        select:focus, input:focus { border-color: var(--gold); box-shadow: 0 0 5px rgba(241, 196, 15, 0.3); }
 
+        /* Channel List */
         #channel-list { flex: 1; overflow-y: auto; padding: 15px; scrollbar-width: thin; scrollbar-color: var(--gold) #141414; }
         .channel-item { 
-            padding: 12px; margin-bottom: 10px; background: var(--card); border-radius: 8px; 
-            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent;
+            padding: 12px; margin-bottom: 8px; background: var(--card); border-radius: 8px; 
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent;
         }
-        .channel-item:hover { border-color: var(--gold); background: #252525; }
-        .channel-item.active { border-color: var(--gold); background: #252525; box-shadow: 0 0 10px rgba(241, 196, 15, 0.2); }
+        .channel-item:hover { border-color: var(--gold); background: #252525; transform: translateX(5px); }
+        .channel-item.active { border-color: var(--gold); background: #252525; border-left: 4px solid var(--gold); }
 
-        #main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .video-wrapper { width: 100%; max-width: 960px; background: #000; border-radius: 15px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        /* Main Player Area */
+        #main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; position: relative; }
+        .video-wrapper { width: 100%; max-width: 1000px; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.9); border: 1px solid #222; }
         video { width: 100%; aspect-ratio: 16/9; display: block; }
         
-        .loader { border: 4px solid #333; border-top: 4px solid var(--gold); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
+        /* Loader Animation */
+        .loader { border: 3px solid #333; border-top: 3px solid var(--gold); border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .info-panel { margin-top: 25px; text-align: center; }
+        #current-name { font-size: 26px; color: var(--gold); margin: 0; font-weight: 300; }
+        #status-indicator { margin-top: 10px; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -38,44 +51,68 @@
 <div id="sidebar">
     <div class="brand">
         <h2>WORLD STREAM</h2>
-        <p style="font-size: 11px; color: #666; margin: 5px 0 0;">Dev: Sameer Arshad (Full Stack)</p>
+        <p>BY SAMEER ARSHAD | FULL STACK DEV</p>
     </div>
 
     <div class="controls">
         <select id="playlist-select" onchange="fetchPlaylist(this.value)">
-            <option value="https://raw.githubusercontent.com/joevess/IPTV/main/iptv.m3u">Joevess Stable (Auto-Update)</option>
-            <option value="https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/playlist_pakistan.m3u">Pakistan (Free-TV)</option>
-            <option value="https://iptv-org.github.io/iptv/categories/movies.m3u">Global Movies</option>
+            <option value="https://raw.githubusercontent.com/joevess/IPTV/main/iptv.m3u">Recommended (Stable)</option>
+            <option value="https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/playlist_pakistan.m3u">Pakistan Channels</option>
+            <option value="https://iptv-org.github.io/iptv/categories/movies.m3u">International Movies</option>
+            <option value="https://iptv-org.github.io/iptv/categories/news.m3u">Global News</option>
         </select>
-        <input type="text" id="search-bar" placeholder="Search channels..." onkeyup="filterChannels()">
+        <input type="text" id="search-bar" placeholder="Search channel name..." onkeyup="filterChannels()">
     </div>
 
-    <div id="channel-list">Connecting...</div>
+    <div id="channel-list">
+        <div style="text-align:center; padding:20px;"><div class="loader"></div><p>Initializing...</p></div>
+    </div>
 </div>
 
 <div id="main">
     <div class="video-wrapper">
         <video id="video" controls autoplay playsinline crossorigin="anonymous"></video>
     </div>
-    <div id="status-pill" style="margin-top:20px; color:var(--gold);">Select a channel</div>
+    <div class="info-panel">
+        <h1 id="current-name">Ready to Stream</h1>
+        <div id="status-indicator">Select a source to begin</div>
+    </div>
 </div>
 
 <script>
     const video = document.getElementById('video');
     const channelList = document.getElementById('channel-list');
-    const statusPill = document.getElementById('status-pill');
+    const statusIndicator = document.getElementById('status-indicator');
+    const nameDisplay = document.getElementById('current-name');
     let hls = new Hls();
     let allChannels = [];
-    const proxy = "https://corsproxy.io/?";
+
+    // Powerful Proxy combination to bypass CORS on GitHub Pages
+    const proxies = [
+        "https://corsproxy.io/?",
+        "https://api.allorigins.win/raw?url="
+    ];
 
     async function fetchPlaylist(url) {
-        channelList.innerHTML = '<div style="text-align:center;"><div class="loader"></div><p>Fetching...</p></div>';
-        try {
-            const response = await fetch(proxy + encodeURIComponent(url));
-            const data = await response.text();
-            parseM3U(data);
-        } catch (error) {
-            channelList.innerHTML = '<p style="text-align:center; color:red;">Connection Failed. Use GitHub Pages.</p>';
+        channelList.innerHTML = '<div style="text-align:center; padding:20px;"><div class="loader"></div><p>Fetching Global Data...</p></div>';
+        
+        let success = false;
+        // Try each proxy until one works
+        for (let proxy of proxies) {
+            try {
+                const response = await fetch(proxy + encodeURIComponent(url));
+                if (!response.ok) throw new Error();
+                const data = await response.text();
+                parseM3U(data);
+                success = true;
+                break; 
+            } catch (err) {
+                console.warn("Proxy failed, trying next...");
+            }
+        }
+
+        if (!success) {
+            channelList.innerHTML = '<p style="color:#ff4757; text-align:center; padding:20px;">Connection Failed.<br>Please use GitHub Pages or Live Server.</p>';
         }
     }
 
@@ -83,26 +120,32 @@
         allChannels = [];
         const lines = data.split('\n');
         let current = {};
+
         lines.forEach(line => {
             line = line.trim();
             if (line.startsWith('#EXTINF')) {
-                current.name = line.split(',')[1] || "Unknown";
+                const info = line.split(',');
+                current.name = info[info.length - 1] || "Unnamed Channel";
             } else if (line.startsWith('http')) {
                 current.url = line;
                 allChannels.push({...current});
                 current = {};
             }
         });
-        renderChannels(allChannels);
+        renderList(allChannels);
     }
 
-    function renderChannels(channels) {
+    function renderList(channels) {
         channelList.innerHTML = '';
+        if (channels.length === 0) {
+            channelList.innerHTML = '<p style="text-align:center; color:#666;">No channels found.</p>';
+            return;
+        }
         channels.forEach(ch => {
             const div = document.createElement('div');
             div.className = 'channel-item';
-            div.innerHTML = `📺 <span>${ch.name}</span>`;
-            div.onclick = () => play(ch.url, ch.name, div);
+            div.innerHTML = `<span>📺</span> <span>${ch.name}</span>`;
+            div.onclick = () => playStream(ch.url, ch.name, div);
             channelList.appendChild(div);
         });
     }
@@ -110,24 +153,37 @@
     function filterChannels() {
         const query = document.getElementById('search-bar').value.toLowerCase();
         const filtered = allChannels.filter(ch => ch.name.toLowerCase().includes(query));
-        renderChannels(filtered);
+        renderList(filtered);
     }
 
-    function play(url, name, el) {
+    function playStream(url, name, element) {
         document.querySelectorAll('.channel-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-        statusPill.innerText = "Loading: " + name;
+        element.classList.add('active');
+        
+        nameDisplay.innerText = name;
+        statusIndicator.innerText = "Connecting to source...";
+        statusIndicator.style.color = var(--gold);
 
         if (Hls.isSupported()) {
             hls.destroy();
             hls = new Hls();
             hls.loadSource(url);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.play();
+                statusIndicator.innerText = "Live Streaming";
+                statusIndicator.style.color = "#2ecc71";
+            });
+            hls.on(Hls.Events.ERROR, () => {
+                statusIndicator.innerText = "Stream Offline or Geo-Blocked";
+                statusIndicator.style.color = "#ff4757";
+            });
         }
     }
 
+    // Initial Load
     fetchPlaylist(document.getElementById('playlist-select').value);
 </script>
+
 </body>
 </html>
